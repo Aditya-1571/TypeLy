@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const { wpm, accuracy, duration, textMode, errors, kps, wpmData } = body;
     const userId = (session.user as any).id;
+    const userEmail = session.user.email?.toLowerCase() || null;
 
     if (isDbConfigured()) {
       try {
@@ -47,6 +48,7 @@ export async function POST(req: Request) {
     // Local result store fallback
     const local = saveLocalResult({
       userId,
+      userEmail,
       wpm: Number(wpm),
       accuracy: Number(accuracy),
       duration: Number(duration),
@@ -73,11 +75,17 @@ export async function GET(req: Request) {
     }
 
     const userId = (session.user as any).id;
+    const userEmail = session.user.email?.toLowerCase() || null;
 
     if (isDbConfigured()) {
       try {
         const results = await prisma.testResult.findMany({
-          where: { userId },
+          where: {
+            OR: [
+              { userId },
+              ...(userEmail ? [{ user: { email: userEmail } }] : [])
+            ]
+          },
           orderBy: { createdAt: 'desc' },
         });
         return NextResponse.json(results, { status: 200 });
@@ -86,7 +94,7 @@ export async function GET(req: Request) {
       }
     }
 
-    const localResults = getLocalResults(userId);
+    const localResults = getLocalResults(userId, userEmail);
     return NextResponse.json(localResults, { status: 200 });
   } catch (error) {
     return NextResponse.json(

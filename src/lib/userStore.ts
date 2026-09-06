@@ -14,6 +14,7 @@ export interface AppUser {
 export interface AppResult {
   id: string;
   userId: string;
+  userEmail?: string | null;
   wpm: number;
   accuracy: number;
   errors: number;
@@ -66,12 +67,17 @@ function saveLocalUser(user: AppUser): void {
 }
 
 // Local Results Store
-export function getLocalResults(userId?: string): AppResult[] {
+export function getLocalResults(userId?: string, userEmail?: string | null): AppResult[] {
   try {
     if (fs.existsSync(RESULTS_FILE)) {
       const all: AppResult[] = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
-      if (userId) {
-        return all.filter(r => r.userId === userId);
+      if (userId || userEmail) {
+        const cleanEmail = userEmail ? userEmail.trim().toLowerCase() : null;
+        return all.filter(r => {
+          const matchId = userId && r.userId === userId;
+          const matchEmail = cleanEmail && r.userEmail && r.userEmail.trim().toLowerCase() === cleanEmail;
+          return matchId || matchEmail;
+        });
       }
       return all;
     }

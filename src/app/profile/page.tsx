@@ -12,10 +12,18 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
+  const userEmail = session.user.email?.toLowerCase() || null;
+  const userId = (session.user as any).id;
+
   let results: any[] = [];
   try {
     results = await prisma.testResult.findMany({
-      where: { userId: (session.user as any).id },
+      where: {
+        OR: [
+          { userId },
+          ...(userEmail ? [{ user: { email: userEmail } }] : [])
+        ]
+      },
       orderBy: { createdAt: 'desc' },
     });
   } catch (error) {
@@ -25,7 +33,7 @@ export default async function ProfilePage() {
   // Fallback to local file results if database had no results or is unconfigured
   if (results.length === 0) {
     const { getLocalResults } = await import("@/lib/userStore");
-    results = getLocalResults((session.user as any).id);
+    results = getLocalResults(userId, userEmail);
   }
 
   // Deduplicate results if any identical tests were saved within 3 seconds of each other
