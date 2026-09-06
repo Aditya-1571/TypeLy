@@ -1,26 +1,121 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-correct: var(--correct);
+  --color-incorrect: var(--incorrect);
+  --color-key-bg: var(--key-bg);
+  --color-key-border: var(--key-border);
+  --color-key-active: var(--key-active);
+  --color-key-text: var(--key-text);
+  --color-key-shift: var(--key-shift);
+  --color-keyboard-bg: var(--keyboard-bg);
+  --color-text-untyped: var(--text-untyped);
+  --color-separator: var(--separator);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Light theme (default) */
+:root {
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+  --card: #f3f4f6;
+  --card-foreground: #1a1a2e;
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #e5e7eb;
+  --secondary-foreground: #374151;
+  --muted: #f3f4f6;
+  --muted-foreground: #6b7280;
+  --accent: #4f46e5;
+  --accent-foreground: #ffffff;
+  --border: #e5e7eb;
+  --correct: #22c55e;
+  --incorrect: #ef4444;
+  --key-bg: #f3f4f6;
+  --key-border: #d1d5db;
+  --key-active: #4f46e5;
+  --key-text: #374151;
+  --key-shift: #9ca3af;
+  --keyboard-bg: #f0f1f3;
+  --text-untyped: #374151;
+  --separator: #d1d5db;
+}
+
+/* Dark theme (Deeper, Obsidian-dark aesthetic) */
+.dark {
+  --background: #0b0c14;
+  --foreground: #f8fafc;
+  --card: #121320;
+  --card-foreground: #f8fafc;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #18192c;
+  --secondary-foreground: #e2e8f0;
+  --muted: #141524;
+  --muted-foreground: #747998;
+  --accent: #818cf8;
+  --accent-foreground: #ffffff;
+  --border: #1d1f36;
+  --correct: #10b981;
+  --incorrect: #f43f5e;
+  --key-bg: #121322;
+  --key-border: #21233d;
+  --key-active: #6366f1;
+  --key-text: #cbd5e1;
+  --key-shift: #5d6182;
+  --keyboard-bg: #07070e;
+  --text-untyped: #535777;
+  --separator: #1c1e35;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Typing cursor animation */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Custom scrollbar for typing area */
+.typing-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.typing-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.typing-scroll::-webkit-scrollbar-thumb {
+  background: var(--muted-foreground);
+  border-radius: 2px;
+}
+
+/* Remove default focus outlines and add custom ones */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
