@@ -28,7 +28,7 @@ export interface AppResult {
 const USERS_FILE = path.join(process.cwd(), '.typely_users.json');
 const RESULTS_FILE = path.join(process.cwd(), '.typely_results.json');
 
-function isDbConfigured(): boolean {
+export function isDbConfigured(): boolean {
   const url = process.env.DATABASE_URL;
   if (!url) return false;
   if (url.includes('ep-sample') || url.includes('user:password') || url.includes('placeholder')) {
@@ -152,4 +152,48 @@ export async function createUser(name: string, email: string, passwordHash: stri
   };
   saveLocalUser(newUser);
   return newUser;
+}
+
+export async function syncUser(userData: { name?: string | null; email?: string | null; image?: string | null }): Promise<string | null> {
+  if (!userData.email) return null;
+  const cleanEmail = userData.email.trim().toLowerCase();
+
+  if (isDbConfigured()) {
+    try {
+      const user = await prisma.user.upsert({
+        where: { email: cleanEmail },
+        update: {
+          name: userData.name || undefined,
+          image: userData.image || undefined,
+        },
+        create: {
+          email: cleanEmail,
+          name: userData.name || null,
+          image: userData.image || null,
+        },
+      });
+      return user.id;
+    } catch (error) {
+      console.warn('Database syncUser failed:', error);
+    }
+  }
+
+  // Also record in local users store
+  const localUsers = getLocalUsers();
+  const existing = localUsers.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+  if (existing) {
+    if (userData.name) existing.name = userData.name;
+    if (userData.image) existing.image = userData.image;
+    saveLocalUser(existing);
+    return existing.id;
+  } else {
+    const newUser: AppUser = {
+      id: 'usr_' + Math.random().toString(36).substring(2, 9),
+      name: userData.name || null,
+      email: cleanEmail,
+      image: userData.image || null,
+    };
+    saveLocalUser(newUser);
+    return newUser.id;
+  }
 }

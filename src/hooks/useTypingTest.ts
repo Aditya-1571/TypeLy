@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TypingState, TextMode, TestResult, WpmDataPoint } from '@/types';
-import { getTextForMode } from '@/lib/texts';
+import { getTextForMode, getMoreText } from '@/lib/texts';
 import { calculateWPM, calculateAccuracy, calculateKPS } from '@/lib/calculate';
 
 interface UseTypingTestProps {
@@ -159,8 +159,9 @@ export function useTypingTest({ duration, textMode, onComplete }: UseTypingTestP
             onKeyResult(e.key, isCorrect);
         }
         
-        if (newState.currentIndex >= prev.text.length) {
-           setTimeout(finishTest, 0);
+        // Endless words: dynamically append more text whenever within 150 characters of the end
+        if (prev.text.length - newState.currentIndex < 150) {
+          newState.text = prev.text + ' ' + getMoreText(textModeRef.current);
         }
       }
       return newState;

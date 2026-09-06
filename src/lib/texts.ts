@@ -115,9 +115,7 @@ const paragraphs = [
   "The train rattled through the countryside, a metallic serpent winding its way through fields of green and gold. Small towns flashed by in a blur, offering fleeting glimpses of lives intersecting briefly with mine before vanishing into the distance. The rhythmic clack-clack of the wheels on the tracks became a hypnotic mantra, lulling me into a state of quiet contemplation as the miles rolled away."
 ];
 
-export function getTextForMode(mode: TextMode, targetLength: number = 200): string {
-  let result = '';
-  
+export function getTextForMode(mode: TextMode, targetLength: number = 800): string {
   let sourceArray: string[];
   switch (mode) {
     case 'common':
@@ -142,7 +140,7 @@ export function getTextForMode(mode: TextMode, targetLength: number = 200): stri
   let currentLength = 0;
   const selectedTexts: string[] = [];
   
-  // Shuffle the source array to prevent repeating the same text if target length is small
+  // Shuffle the source array to prevent repeating the same text
   const shuffledSource = getRandomItems(sourceArray, sourceArray.length);
   let index = 0;
   
@@ -153,7 +151,30 @@ export function getTextForMode(mode: TextMode, targetLength: number = 200): stri
     index++;
   }
   
-  result = selectedTexts.join(' ');
-  
-  return result.trim();
+  return selectedTexts.join(' ').trim();
+}
+
+export function getMoreText(mode: TextMode): string {
+  let sourceArray: string[];
+  switch (mode) {
+    case 'common':
+      sourceArray = commonParagraphs;
+      break;
+    case 'quotes':
+      sourceArray = quotes;
+      break;
+    case 'code':
+      sourceArray = codeSnippets;
+      break;
+    case 'numbers':
+      sourceArray = numbers;
+      break;
+    case 'paragraphs':
+      sourceArray = paragraphs;
+      break;
+    default:
+      sourceArray = commonParagraphs;
+  }
+  const randomPick = getRandomItems(sourceArray, 2);
+  return randomPick.join(' ');
 }

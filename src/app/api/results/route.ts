@@ -27,9 +27,28 @@ export async function POST(req: Request) {
 
     if (isDbConfigured()) {
       try {
+        // Ensure user exists in Prisma DB so foreign key relation is satisfied
+        let targetUserId = userId;
+        if (userEmail) {
+          const dbUser = await prisma.user.upsert({
+            where: { email: userEmail },
+            update: {
+              name: session.user.name || undefined,
+              image: session.user.image || undefined,
+            },
+            create: {
+              id: userId,
+              email: userEmail,
+              name: session.user.name || null,
+              image: session.user.image || null,
+            },
+          });
+          targetUserId = dbUser.id;
+        }
+
         const result = await prisma.testResult.create({
           data: {
-            userId,
+            userId: targetUserId,
             wpm: Number(wpm),
             accuracy: Number(accuracy),
             duration: Number(duration),
@@ -41,7 +60,7 @@ export async function POST(req: Request) {
         });
         return NextResponse.json(result, { status: 201 });
       } catch (dbErr) {
-        console.warn("DB save failed, falling back to local result store");
+        console.error("DB save failed:", dbErr);
       }
     }
 

@@ -18,6 +18,9 @@ interface WordToken {
 }
 
 export default function TextDisplay({ text, currentIndex, userInput, isActive, isFinished }: TextDisplayProps) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const cursorRef = React.useRef<HTMLSpanElement>(null);
+
   // Parse text into words with their respective character indices to ensure words never break across lines
   const words = useMemo(() => {
     const tokens: WordToken[] = [];
@@ -49,14 +52,38 @@ export default function TextDisplay({ text, currentIndex, userInput, isActive, i
     return tokens;
   }, [text]);
 
+  // Keep cursor in comfortable view continuously as lines advance
+  React.useEffect(() => {
+    if (cursorRef.current && containerRef.current) {
+      const cursor = cursorRef.current;
+      const container = containerRef.current;
+      const cursorTop = cursor.offsetTop;
+      const containerHeight = container.clientHeight;
+      
+      // If cursor moves past the 2nd line, smooth scroll container
+      if (cursorTop > container.scrollTop + containerHeight * 0.6) {
+        container.scrollTo({
+          top: cursorTop - containerHeight * 0.35,
+          behavior: 'smooth'
+        });
+      } else if (cursorTop < container.scrollTop) {
+        container.scrollTo({
+          top: Math.max(0, cursorTop - 40),
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [currentIndex]);
+
   return (
     <div 
+      ref={containerRef}
       className={cn(
-        "py-6 px-3 select-none transition-all duration-300",
+        "py-4 px-3 select-none transition-all duration-300 max-h-[220px] overflow-y-auto typing-scroll relative",
         isFinished && "opacity-25 pointer-events-none filter blur-[0.5px]"
       )}
     >
-      <div className="font-mono text-xl md:text-[22px] leading-[2.4] tracking-wide flex flex-wrap items-baseline">
+      <div className="font-mono text-xl md:text-[22px] leading-[2.4] tracking-wide flex flex-wrap items-baseline relative">
         {words.map((word) => (
           <span 
             key={word.wordIndex} 
@@ -88,6 +115,7 @@ export default function TextDisplay({ text, currentIndex, userInput, isActive, i
                 >
                   {isCursor && (
                     <span 
+                      ref={cursorRef}
                       className={cn(
                         "absolute -left-[1.5px] top-[12%] w-[2.5px] h-[76%] bg-primary rounded-full shadow-[0_0_10px_rgba(99,102,241,0.9)] z-10",
                         !isActive && !isFinished ? "cursor-blink" : "opacity-100"
@@ -107,6 +135,7 @@ export default function TextDisplay({ text, currentIndex, userInput, isActive, i
               >
                 {currentIndex === word.space.index && (
                   <span 
+                    ref={cursorRef}
                     className={cn(
                       "absolute -left-[1.5px] top-[12%] w-[2.5px] h-[76%] bg-primary rounded-full shadow-[0_0_10px_rgba(99,102,241,0.9)] z-10",
                       !isActive && !isFinished ? "cursor-blink" : "opacity-100"

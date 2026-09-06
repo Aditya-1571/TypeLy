@@ -2,7 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { findUserByEmail } from "./userStore";
+import { findUserByEmail, syncUser } from "./userStore";
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -67,6 +67,21 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         if (user.image) {
           token.picture = user.image;
+        }
+      }
+      // If user logged in via OAuth or token doesn't have database id, ensure user is created in DB
+      if (token.email) {
+        try {
+          const dbUserId = await syncUser({
+            name: (token.name as string) || null,
+            email: token.email,
+            image: (token.picture as string) || null,
+          });
+          if (dbUserId) {
+            token.id = dbUserId;
+          }
+        } catch (e) {
+          console.warn("Could not sync user in jwt callback:", e);
         }
       }
       return token;
